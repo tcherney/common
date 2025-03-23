@@ -5,7 +5,7 @@ test "hello world" {
 }
 
 //TODO port over util functions here, more complex structs in seperate files that then get exposed here
-pub const StringKeyMap = @import("string_key_map.zig");
+pub const StringKeyMap = @import("string_key_map.zig").StringKeyMap;
 pub const Graph = @import("graph.zig");
 pub const Mat = @import("matrix.zig").Mat;
 
