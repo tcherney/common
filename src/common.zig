@@ -1,9 +1,5 @@
 const std = @import("std");
 
-test "hello world" {
-    std.debug.print("hello world", .{});
-}
-
 //TODO port over util functions here, more complex structs in seperate files that then get exposed here
 pub const StringKeyMap = @import("string_key_map.zig").StringKeyMap;
 pub const Graph = @import("graph.zig");
@@ -18,6 +14,45 @@ pub fn timer_end() void {
     std.log.debug("{d} s elapsed.\n", .{@as(f64, @floatFromInt(timer.read())) / 1000000000.0});
     timer.reset();
 }
+
+pub const ColoredTerminal = struct {
+    pub const colors = .{
+        .red = "\x1B[91m",
+        .green = "\x1B[92m",
+        .yellow = "\x1B[93m",
+        .blue = "\x1B[94m",
+        .magenta = "\x1B[95m",
+        .cyan = "\x1B[96m",
+        .dark_red = "\x1B[31m",
+        .dark_green = "\x1B[32m",
+        .dark_yellow = "\x1B[33m",
+        .dark_blue = "\x1B[34m",
+        .dark_magenta = "\x1B[35m",
+        .dark_cyan = "\x1B[36m",
+        .white = "\x1B[37m",
+        .end = "\x1B[0m",
+    };
+
+    pub fn colored_format(comptime fmt: []const u8, color: @Type(.EnumLiteral)) []const u8 {
+        const color_str = switch (color) {
+            .red => colors.red,
+            .green => colors.green,
+            .yellow => colors.yellow,
+            .blue => colors.blue,
+            .magenta => colors.magenta,
+            .cyan => colors.cyan,
+            .dark_red => colors.dark_red,
+            .dark_green => colors.dark_green,
+            .dark_yellow => colors.dark_yellow,
+            .dark_blue => colors.dark_blue,
+            .dark_magenta => colors.dark_magenta,
+            .dark_cyan => colors.dark_cyan,
+            .white => colors.white,
+            else => unreachable,
+        };
+        return color_str ++ fmt ++ colors.end;
+    }
+};
 
 pub const Pixel = struct {
     v: vec4 = .{ 0, 0, 0, 255 },
@@ -620,4 +655,8 @@ test "Transpose" {
     m.print();
     m.transpose();
     m.print();
+}
+
+test "colored hello world" {
+    std.debug.print(ColoredTerminal.colored_format("hello world\n", .blue), .{});
 }
