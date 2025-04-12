@@ -62,7 +62,7 @@ pub fn Mat(comptime S: comptime_int, comptime T: type) type {
                 }
             }
         }
-        pub fn rotate(comptime axis: @Type(.EnumLiteral), degrees: T) Error!Self {
+        pub fn rotate(comptime axis: @Type(.enum_literal), degrees: T) Error!Self {
             if (S < 2) return Error.TransformationUndefined;
             const rad = degrees * std.math.rad_per_deg;
             var ret = Self{};
@@ -236,15 +236,15 @@ pub fn Mat(comptime S: comptime_int, comptime T: type) type {
         pub fn vectorize(args: anytype) Error!Vec {
             const ArgsType = @TypeOf(args);
             const args_type_info = @typeInfo(ArgsType);
-            if (args_type_info != .Struct) {
+            if (args_type_info != .@"struct") {
                 @compileError("expected tuple or struct argument, found " ++ @typeName(ArgsType));
             }
-            if (args_type_info.Struct.fields.len != S - 1) {
+            if (args_type_info.@"struct".fields.len != S - 1) {
                 return Error.ArgError;
             }
             var res: Vec = undefined;
-            inline for (0..args_type_info.Struct.fields.len) |i| {
-                res[i] = @field(args, args_type_info.Struct.fields[i].name);
+            inline for (0..args_type_info.@"struct".fields.len) |i| {
+                res[i] = @field(args, args_type_info.@"struct".fields[i].name);
             }
             res[S - 1] = 1;
             //std.log.warn("vectorized {any}\n", .{res});
@@ -272,35 +272,36 @@ pub fn Mat(comptime S: comptime_int, comptime T: type) type {
             return res;
         }
         pub fn mul(self: *const Self, other: Self) Self {
-            return self.mul_by_row(other);
+            return self.naive_mul(other);
         }
-        pub fn mul_by_col(self: *const Self, other: Self) Self {
-            var res: Self = undefined;
-            for (0..S) |i| {
-                const mat_r: Vec = self.data[i * S .. i * S + S][0..S].*;
-                for (0..S) |j| {
-                    var mat_c: Vec = undefined;
-                    for (0..S) |k| {
-                        mat_c[k] = other.data[k * S + j];
-                    }
-                    res.data[i * S + j] = @reduce(.Add, mat_r * mat_c);
-                }
-            }
-            std.log.debug("matrix matrix by col {any}\n", .{res.data});
-            return res;
-        }
-        pub fn mul_by_row(self: *const Self, other: Self) Self {
-            var res: Self = Self.init(.{0} ** (S * S));
-            for (0..S) |i| {
-                const mat_r: Vec = self.data[i * S .. i * S + S][0..S].*;
-                for (0..S) |j| {
-                    const mat_other_r: Vec = other.data[j * S .. j * S + S][0..S].*;
-                    res.data[i * S .. i * S + S][0..S].* += mat_r * mat_other_r;
-                }
-            }
-            std.log.debug("matrix matrix by row {any}\n", .{res.data});
-            return res;
-        }
+        //TODO reintegrate vector operations with 0.14
+        // pub fn mul_by_col(self: *const Self, other: Self) Self {
+        //     var res: Self = undefined;
+        //     for (0..S) |i| {
+        //         const mat_r: Vec = self.data[i * S .. i * S + S][0..S].*;
+        //         for (0..S) |j| {
+        //             var mat_c: Vec = undefined;
+        //             for (0..S) |k| {
+        //                 mat_c[k] = other.data[k * S + j];
+        //             }
+        //             res.data[i * S + j] = @reduce(.Add, mat_r * mat_c);
+        //         }
+        //     }
+        //     std.log.debug("matrix matrix by col {any}\n", .{res.data});
+        //     return res;
+        // }
+        // pub fn mul_by_row(self: *const Self, other: Self) Self {
+        //     var res: Self = Self.init(.{0} ** (S * S));
+        //     for (0..S) |i| {
+        //         const mat_r: Vec = self.data[i * S .. i * S + S][0..S].*;
+        //         for (0..S) |j| {
+        //             const mat_other_r: Vec = other.data[j * S .. j * S + S][0..S].*;
+        //             res.data[i * S .. i * S + S][0..S].* += mat_r * mat_other_r;
+        //         }
+        //     }
+        //     std.log.debug("matrix matrix by row {any}\n", .{res.data});
+        //     return res;
+        // }
         pub fn naive_mul(self: *const Self, other: Self) Self {
             var res: Self = undefined;
             for (0..S) |i| {

@@ -33,7 +33,7 @@ pub const ColoredTerminal = struct {
         .end = "\x1B[0m",
     };
 
-    pub fn colored_format(comptime fmt: []const u8, color: @Type(.EnumLiteral)) []const u8 {
+    pub fn colored_format(comptime fmt: []const u8, color: @Type(.enum_literal)) []const u8 {
         const color_str = switch (color) {
             .red => colors.red,
             .green => colors.green,
@@ -640,12 +640,6 @@ test "MATRIX mult" {
     var m2: Matrix = Matrix{};
     m2.fill_x(0, 2);
     m2.print();
-
-    try timer_start();
-    _ = m.mul_by_row(m2);
-    timer_end();
-    _ = m.mul_by_col(m2);
-    timer_end();
 }
 
 test "Transpose" {
