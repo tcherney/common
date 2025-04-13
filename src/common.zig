@@ -198,7 +198,7 @@ pub const ByteStream = struct {
     pub fn init(options: anytype) Error!ByteStream {
         const ArgsType = @TypeOf(options);
         const args_type_info = @typeInfo(ArgsType);
-        if (args_type_info != .Struct) {
+        if (args_type_info != .@"struct") {
             return Error.InvalidArgs;
         }
         var buffer: []u8 = undefined;
@@ -274,7 +274,7 @@ pub const BitReader = struct {
     pub fn set_options(self: *Self, options: anytype) Error!void {
         const ArgsType = @TypeOf(options);
         const args_type_info = @typeInfo(ArgsType);
-        if (args_type_info != .Struct) {
+        if (args_type_info != .@"struct") {
             return Error.InvalidArgs;
         }
 
