@@ -4,6 +4,7 @@ const std = @import("std");
 pub const StringKeyMap = @import("string_key_map.zig").StringKeyMap;
 pub const Graph = @import("graph.zig");
 pub const Mat = @import("matrix.zig").Mat;
+pub const Colors = @import("colors.zig").Colors;
 
 var timer: std.time.Timer = undefined;
 pub fn timer_start() std.time.Timer.Error!void {
