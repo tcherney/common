@@ -16,5 +16,8 @@ pub const Colors = struct {
     pub const WENGE = Pixel.init(100, 84, 82, null);
     pub const DARK_BROWN = Pixel.init(92, 64, 51, null);
     pub const BEAVER = Pixel.init(159, 129, 112, null);
+    pub const CERULEAN = Pixel.init(0, 123, 167, null);
+    pub const SKY = Pixel.init(135, 206, 235, null);
+    pub const BLUE_NCS = Pixel.init(0, 135, 189, null);
     //TODO add more colors
 };
