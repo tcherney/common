@@ -520,6 +520,21 @@ pub fn Callback(comptime DATA_TYPE: type) type {
     };
 }
 
+pub fn CallbackNoData() type {
+    return struct {
+        function: *const fn (context: *anyopaque) void,
+        context: *anyopaque,
+        const Self = @This();
+        pub fn init(comptime T: type, function: *const fn (context: *T) void, context: *T) Self {
+            return Self{ .function = @ptrCast(function), .context = context };
+        }
+
+        pub fn call(callback: Self) void {
+            return callback.function(callback.context);
+        }
+    };
+}
+
 pub fn CallbackError(comptime DATA_TYPE: type, comptime Error: type) type {
     return struct {
         function: *const fn (context: *anyopaque, DATA_TYPE) Error!void,
