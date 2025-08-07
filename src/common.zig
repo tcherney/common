@@ -6,6 +6,8 @@ pub const Graph = @import("graph.zig");
 pub const Mat = @import("matrix.zig").Mat;
 pub const Colors = @import("colors.zig").Colors;
 
+const COMMON = @This();
+
 var timer: std.time.Timer = undefined;
 pub fn timer_start() std.time.Timer.Error!void {
     timer = try std.time.Timer.start();
@@ -92,7 +94,22 @@ pub const Pixel = struct {
     pub fn eql(self: *Pixel, other: Pixel) bool {
         return @reduce(.And, self.v == other.v);
     }
+    pub fn lerp(self: *Pixel, other: Pixel, t: f64) Pixel {
+        const r: u8 = @as(u8, @intFromFloat(COMMON.lerp(@floatFromInt(self.get_r()), @floatFromInt(other.get_r()), t)));
+        const g: u8 = @as(u8, @intFromFloat(COMMON.lerp(@floatFromInt(self.get_g()), @floatFromInt(other.get_g()), t)));
+        const b: u8 = @as(u8, @intFromFloat(COMMON.lerp(@floatFromInt(self.get_b()), @floatFromInt(other.get_b()), t)));
+        const a: u8 = @as(u8, @intFromFloat(COMMON.lerp(@floatFromInt(self.get_a()), @floatFromInt(other.get_a()), t)));
+        return .{
+            .v = .{
+                r, g, b, a,
+            },
+        };
+    }
 };
+
+pub fn lerp(v0: f64, v1: f64, t: f64) f64 {
+    return v0 + t * (v1 - v0);
+}
 
 pub fn max_array(comptime T: type, arr: []T) T {
     if (arr.len == 1) {
