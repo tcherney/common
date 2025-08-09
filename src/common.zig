@@ -105,6 +105,9 @@ pub const Pixel = struct {
             },
         };
     }
+    pub fn copy(self: *const Pixel) Pixel {
+        return .{ .v = .{ self.v[0], self.v[1], self.v[2], self.v[3] } };
+    }
 };
 
 pub fn lerp(v0: f64, v1: f64, t: f64) f64 {
