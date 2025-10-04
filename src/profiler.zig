@@ -1,16 +1,23 @@
 const string_key_map = @import("string_key_map.zig");
 const std = @import("std");
-const StringKeyMap = string_key_map.StringKeyMap(u64);
-const ProfileString = std.ArrayList(u8);
+
 const Allocator = std.mem.Allocator;
+const PROFILER_LOG = std.log.scoped(.profiler);
 
 var ENABLED = true;
 
-const Profiler = struct {
+const Profiler = if (ENABLED) struct {
     head: ?*ProfileLevel = null,
     current_level: *ProfileLevel = undefined,
     allocator: Allocator,
     const Error = error{NotStarted} || Allocator.Error || std.time.Timer.Error;
+    const ProfileString = if (ENABLED) std.ArrayList(u8) else void;
+    const LoggingLevel = enum {
+        DEBUG,
+        ERROR,
+        INFO,
+        WARN,
+    };
     const ProfileLevel = struct {
         name: ProfileString,
         timer: std.time.Timer = undefined,
@@ -31,28 +38,34 @@ const Profiler = struct {
             return ret;
         }
         pub fn deinit(self: *ProfileLevel, allocator: Allocator) void {
-            for (self.children.items) |child| {
-                child.deinit(allocator);
-                allocator.destroy(child);
+            if (ENABLED) {
+                for (self.children.items) |child| {
+                    child.deinit(allocator);
+                    allocator.destroy(child);
+                }
+                self.children.deinit();
+                self.name.deinit();
             }
-            self.children.deinit();
-            self.name.deinit();
         }
     };
 
     pub fn init(allocator: Allocator) Profiler {
-        return .{ .allocator = allocator };
+        if (ENABLED) {
+            return .{ .allocator = allocator };
+        }
     }
 
     pub fn deinit(self: *Profiler) void {
-        if (self.head) |head| {
-            for (head.children.items) |child| {
-                child.deinit(self.allocator);
-                self.allocator.destroy(child);
+        if (ENABLED) {
+            if (self.head) |head| {
+                for (head.children.items) |child| {
+                    child.deinit(self.allocator);
+                    self.allocator.destroy(child);
+                }
+                self.head.?.children.deinit();
+                self.head.?.name.deinit();
+                self.allocator.destroy(self.head.?);
             }
-            self.head.?.children.deinit();
-            self.head.?.name.deinit();
-            self.allocator.destroy(self.head.?);
         }
     }
 
@@ -116,16 +129,39 @@ const Profiler = struct {
         }
     }
 
-    pub fn to_string(self: *Profiler) Error!std.ArrayList(u8) {
-        if (self.head) |head| {
-            var ret = std.ArrayList(u8).init(self.allocator);
-            try to_string_helper(head, 0, &ret);
-            return ret;
-        } else {
-            return Error.NotStarted;
+    pub fn to_string(self: *Profiler) Error!ProfileString {
+        if (ENABLED) {
+            if (self.head) |head| {
+                var ret = std.ArrayList(u8).init(self.allocator);
+                try to_string_helper(head, 0, &ret);
+                return ret;
+            } else {
+                return Error.NotStarted;
+            }
         }
     }
-};
+
+    pub fn log(self: *Profiler, level: LoggingLevel) Error!void {
+        if (ENABLED) {
+            const res_str = try self.to_string();
+            defer res_str.deinit();
+            switch (level) {
+                .INFO => {
+                    PROFILER_LOG.info("{s}", .{res_str.items});
+                },
+                .WARN => {
+                    PROFILER_LOG.warn("{s}", .{res_str.items});
+                },
+                .DEBUG => {
+                    PROFILER_LOG.debug("{s}", .{res_str.items});
+                },
+                .ERROR => {
+                    PROFILER_LOG.err("{s}", .{res_str.items});
+                },
+            }
+        }
+    }
+} else void;
 
 fn test1(profiler: *Profiler) !void {
     const src_loc = @src();
