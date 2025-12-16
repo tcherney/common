@@ -18,6 +18,11 @@ const Profiler = if (ENABLED) struct {
         INFO,
         WARN,
     };
+    const Units = enum {
+        SECONDS,
+        MILLISECONDS,
+        NANOSECONDS,
+    };
     const ProfileLevel = struct {
         name: ProfileString,
         timer: std.time.Timer = undefined,
@@ -118,22 +123,36 @@ const Profiler = if (ENABLED) struct {
         return @as(f64, @floatFromInt(nano)) / @as(f64, @floatFromInt(std.time.ns_per_s));
     }
 
-    //TODO add more time unit options
-    fn to_string_helper(current_level: *ProfileLevel, current_nesting: u64, ret: *std.ArrayList(u8)) Error!void {
+    fn to_milli(nano: u64) f64 {
+        return @as(f64, @floatFromInt(nano)) / @as(f64, @floatFromInt(std.time.ns_per_ms));
+    }
+
+    fn to_string_helper(units: Units, current_level: *ProfileLevel, current_nesting: u64, ret: *std.ArrayList(u8)) Error!void {
         for (0..current_nesting) |_| {
             _ = try ret.writer().write("   ");
         }
-        try ret.writer().print("{s} --- min: {d:.4} | max: {d:.4} | mean: {d:.4} | elapsed: {d:.4}\n", .{ current_level.name.items, to_seconds(current_level.min), to_seconds(current_level.max), to_seconds(current_level.total_elapsed) / @as(f64, @floatFromInt(current_level.num_events)), to_seconds(current_level.total_elapsed) });
+        //TODO may need to adjust specifiers
+        switch (units) {
+            .SECONDS => {
+                try ret.writer().print("{s} --- min: {d:.4} | max: {d:.4} | mean: {d:.4} | elapsed: {d:.4}\n", .{ current_level.name.items, to_seconds(current_level.min), to_seconds(current_level.max), to_seconds(current_level.total_elapsed) / @as(f64, @floatFromInt(current_level.num_events)), to_seconds(current_level.total_elapsed) });
+            },
+            .MILLISECONDS => {
+                try ret.writer().print("{s} --- min: {d:.4} | max: {d:.4} | mean: {d:.4} | elapsed: {d:.4}\n", .{ current_level.name.items, to_milli(current_level.min), to_milli(current_level.max), to_milli(current_level.total_elapsed) / @as(f64, @floatFromInt(current_level.num_events)), to_milli(current_level.total_elapsed) });
+            },
+            .NANOSECONDS => {
+                try ret.writer().print("{s} --- min: {d:.4} | max: {d:.4} | mean: {d:.4} | elapsed: {d:.4}\n", .{ current_level.name.items, current_level.min, current_level.max, current_level.total_elapsed / current_level.num_events, current_level.total_elapsed });
+            },
+        }
         for (current_level.children.items) |child| {
-            try to_string_helper(child, current_nesting + 1, ret);
+            try to_string_helper(units, child, current_nesting + 1, ret);
         }
     }
 
-    pub fn to_string(self: *Profiler) Error!ProfileString {
+    pub fn to_string(self: *Profiler, units: Units) Error!ProfileString {
         if (ENABLED) {
             if (self.head) |head| {
                 var ret = std.ArrayList(u8).init(self.allocator);
-                try to_string_helper(head, 0, &ret);
+                try to_string_helper(units, head, 0, &ret);
                 return ret;
             } else {
                 return Error.NotStarted;
@@ -141,9 +160,9 @@ const Profiler = if (ENABLED) struct {
         }
     }
 
-    pub fn log(self: *Profiler, level: LoggingLevel) Error!void {
+    pub fn log(self: *Profiler, level: LoggingLevel, units: Units) Error!void {
         if (ENABLED) {
-            const res_str = try self.to_string();
+            const res_str = try self.to_string(units);
             defer res_str.deinit();
             switch (level) {
                 .INFO => {
