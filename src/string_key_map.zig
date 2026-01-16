@@ -9,11 +9,11 @@ pub fn StringKeyMap(comptime V: type) type {
     const Iterator = std.StringHashMap(V).Iterator;
     const KeyIterator = std.StringHashMap(V).KeyIterator;
     const ValueIterator = std.StringHashMap(V).ValueIterator;
-    const Entry = std.StringHashMap(V).Entry;
     return struct {
         internal_map: std.StringHashMap(V),
         allocator: std.mem.Allocator,
         keys: std.ArrayList(std.ArrayList(u8)),
+        pub const Entry = std.StringHashMap(V).Entry;
         pub const Self = @This();
         pub fn init(allocator: std.mem.Allocator) Self {
             return Self{
@@ -32,12 +32,15 @@ pub fn StringKeyMap(comptime V: type) type {
         }
 
         //TODO could support more features
-        fn add_key(self: *Self, key: []const u8) !void {
+        fn add_key(self: *Self, key: []const u8) ![]u8 {
             for (0..self.keys.items.len) |i| {
-                if (std.mem.eql(u8, self.keys.items[i].items, key)) return;
+                if (std.mem.eql(u8, self.keys.items[i].items, key)) {
+                    return self.keys.items[i].items;
+                }
             }
             try self.keys.append((std.ArrayList(u8).init(self.allocator)));
             _ = try self.keys.items[self.keys.items.len - 1].writer().write(key);
+            return self.keys.items[self.keys.items.len - 1].items;
         }
 
         /// Empty the map, but keep the backing allocation for future use.
@@ -86,8 +89,8 @@ pub fn StringKeyMap(comptime V: type) type {
         /// the `Entry` pointers point to it. Caller should then initialize
         /// the value (but not the key).
         pub fn getOrPut(self: *Self, key: K) std.mem.Allocator.Error!GetOrPutResult {
-            try self.add_key(key);
-            return self.internal_map.getOrPut(key);
+            const real_key = try self.add_key(key);
+            return self.internal_map.getOrPut(real_key);
         }
 
         /// If key exists this function cannot fail.
@@ -97,8 +100,8 @@ pub fn StringKeyMap(comptime V: type) type {
         /// the `Entry` pointers point to it. Caller must then initialize
         /// the key and value.
         pub fn getOrPutAdapted(self: *Self, key: anytype, ctx: anytype) std.mem.Allocator.Error!GetOrPutResult {
-            try self.add_key(key);
-            return self.internal_map.getOrPutAdapted(key, ctx);
+            const real_key = try self.add_key(key);
+            return self.internal_map.getOrPutAdapted(real_key, ctx);
         }
 
         /// If there is an existing item with `key`, then the result's
@@ -109,8 +112,8 @@ pub fn StringKeyMap(comptime V: type) type {
         /// If a new entry needs to be stored, this function asserts there
         /// is enough capacity to store it.
         pub fn getOrPutAssumeCapacity(self: *Self, key: K) GetOrPutResult {
-            try self.add_key(key);
-            return self.internal_map.getOrPutAssumeCapacity(key);
+            const real_key = try self.add_key(key);
+            return self.internal_map.getOrPutAssumeCapacity(real_key);
         }
 
         /// If there is an existing item with `key`, then the result's
@@ -121,13 +124,13 @@ pub fn StringKeyMap(comptime V: type) type {
         /// If a new entry needs to be stored, this function asserts there
         /// is enough capacity to store it.
         pub fn getOrPutAssumeCapacityAdapted(self: *Self, key: anytype, ctx: anytype) GetOrPutResult {
-            try self.add_key(key);
-            return self.internal_map.getOrPutAssumeCapacityAdapted(key, ctx);
+            const real_key = try self.add_key(key);
+            return self.internal_map.getOrPutAssumeCapacityAdapted(real_key, ctx);
         }
 
         pub fn getOrPutValue(self: *Self, key: K, value: V) std.mem.Allocator.Error!Entry {
-            try self.add_key(key);
-            return self.internal_map.getOrPutValue(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.getOrPutValue(real_key, value);
         }
 
         /// Increases capacity, guaranteeing that insertions up until the
@@ -152,44 +155,44 @@ pub fn StringKeyMap(comptime V: type) type {
         /// Clobbers any existing data. To detect if a put would clobber
         /// existing data, see `getOrPut`.
         pub fn put(self: *Self, key: K, value: V) std.mem.Allocator.Error!void {
-            try self.add_key(key);
-            return self.internal_map.put(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.put(real_key, value);
         }
 
         /// Inserts a key-value pair into the hash map, asserting that no previous
         /// entry with the same key is already present
         pub fn putNoClobber(self: *Self, key: K, value: V) std.mem.Allocator.Error!void {
-            try self.add_key(key);
-            return self.internal_map.putNoClobber(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.putNoClobber(real_key, value);
         }
 
         /// Asserts there is enough capacity to store the new key-value pair.
         /// Clobbers any existing data. To detect if a put would clobber
         /// existing data, see `getOrPutAssumeCapacity`.
         pub fn putAssumeCapacity(self: *Self, key: K, value: V) void {
-            try self.add_key(key);
-            return self.internal_map.putAssumeCapacity(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.putAssumeCapacity(real_key, value);
         }
 
         /// Asserts there is enough capacity to store the new key-value pair.
         /// Asserts that it does not clobber any existing data.
         /// To detect if a put would clobber existing data, see `getOrPutAssumeCapacity`.
         pub fn putAssumeCapacityNoClobber(self: *Self, key: K, value: V) void {
-            try self.add_key(key);
-            return self.internal_map.putAssumeCapacityNoClobber(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.putAssumeCapacityNoClobber(real_key, value);
         }
 
         /// Inserts a new `Entry` into the hash map, returning the previous one, if any.
         pub fn fetchPut(self: *Self, key: K, value: V) std.mem.Allocator.Error!?KV {
-            try self.add_key(key);
-            return self.internal_map.fetchPut(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.fetchPut(real_key, value);
         }
 
         /// Inserts a new `Entry` into the hash map, returning the previous one, if any.
         /// If insertion happens, asserts there is enough capacity without allocating.
         pub fn fetchPutAssumeCapacity(self: *Self, key: K, value: V) ?KV {
-            try self.add_key(key);
-            return self.internal_map.fetchPutAssumeCapacity(key, value);
+            const real_key = try self.add_key(key);
+            return self.internal_map.fetchPutAssumeCapacity(real_key, value);
         }
 
         /// Removes a value from the map and returns the removed kv pair.

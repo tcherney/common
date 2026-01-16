@@ -5,6 +5,7 @@ pub const StringKeyMap = @import("string_key_map.zig").StringKeyMap;
 pub const Graph = @import("graph.zig");
 pub const Mat = @import("matrix.zig").Mat;
 pub const Colors = @import("colors.zig").Colors;
+pub const itertools = @import("itertools.zig");
 
 const COMMON = @This();
 const COMMON_LOG = std.log.scoped(.common);
@@ -14,9 +15,11 @@ pub fn timer_start() std.time.Timer.Error!void {
     timer = try std.time.Timer.start();
 }
 
-pub fn timer_end() void {
-    COMMON_LOG.info("{d} s elapsed.\n", .{@as(f64, @floatFromInt(timer.read())) / 1000000000.0});
+pub fn timer_end() f64 {
+    const ret = @as(f64, @floatFromInt(timer.read())) / 1000000000.0;
+    COMMON_LOG.info("{d} s elapsed.\n", .{ret});
     timer.reset();
+    return ret;
 }
 
 pub const ColoredTerminal = struct {
@@ -284,6 +287,7 @@ pub const BitReader = struct {
     pub const Error = error{
         InvalidRead,
         InvalidArgs,
+        InvalidEOI,
     } || ByteStream.Error;
 
     pub fn init(options: anytype) Error!BitReader {
@@ -492,10 +496,17 @@ pub const BitReader = struct {
                         _ = try self.byte_stream.readByte();
                         break;
                     } else if (marker >= 0xD0 and marker <= 0xD7) {
+                        COMMON_LOG.info("Found marker 0x{X}\n", .{marker});
                         _ = try self.byte_stream.readByte();
                         self.next_byte = try self.byte_stream.readByte();
                     } else {
-                        return Error.InvalidRead;
+                        COMMON_LOG.info("Unexpected marker 0x{X}\n", .{marker});
+                        if (marker == 0xD9) {
+                            self.byte_stream.index -= 1;
+                            return Error.InvalidEOI;
+                        }
+                        _ = try self.byte_stream.readByte();
+                        self.next_byte = try self.byte_stream.readByte();
                     }
                 }
             }
