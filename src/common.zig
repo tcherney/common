@@ -7,6 +7,7 @@ pub const Mat = @import("matrix.zig").Mat;
 pub const Colors = @import("colors.zig").Colors;
 
 const COMMON = @This();
+const COMMON_LOG = std.log.scoped(.common);
 
 var timer: std.time.Timer = undefined;
 pub fn timer_start() std.time.Timer.Error!void {
@@ -14,7 +15,7 @@ pub fn timer_start() std.time.Timer.Error!void {
 }
 
 pub fn timer_end() void {
-    std.log.debug("{d} s elapsed.\n", .{@as(f64, @floatFromInt(timer.read())) / 1000000000.0});
+    COMMON_LOG.info("{d} s elapsed.\n", .{@as(f64, @floatFromInt(timer.read())) / 1000000000.0});
     timer.reset();
 }
 
