@@ -1,4 +1,0 @@
-no step named 'run'
-  access the help menu with 'zig build -h'
-error: the following build command failed with exit code 1:
-/home/deck/code/common/.zig-cache/o/34cf5d54eb04e8723f72970af595bfee/build /home/deck/.zvm/0.14.1/zig /home/deck/.zvm/0.14.1/lib /home/deck/code/common /home/deck/code/common/.zig-cache /home/deck/.var/app/com.visualstudio.code/cache/zig --seed 0x985109a4 -Z2a9dc16ea7324368 run
