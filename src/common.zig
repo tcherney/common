@@ -22,6 +22,17 @@ pub fn timer_end() f64 {
     return ret;
 }
 
+pub fn timer_start_param() std.time.Timer.Error!std.time.Timer {
+    return try std.time.Timer.start();
+}
+
+pub fn timer_end_param(t: *std.time.Timer) f64 {
+    const ret = @as(f64, @floatFromInt(t.read())) / 1000000000.0;
+    COMMON_LOG.info("{d} s elapsed.\n", .{ret});
+    t.reset();
+    return ret;
+}
+
 pub const ColoredTerminal = struct {
     pub const colors = .{
         .red = "\x1B[91m",
