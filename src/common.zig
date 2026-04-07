@@ -602,6 +602,16 @@ pub fn Point(comptime size: comptime_int, comptime data_type: type) type {
                 pub fn eql(lhs: Self, rhs: Self) bool {
                     return lhs.x == rhs.x and lhs.y == rhs.y;
                 }
+                pub fn distance_squared(lhs: *Self, rhs: Self) f64 {
+                    const dx = @as(f64, lhs.x) - @as(f64, rhs.x);
+                    const dy = @as(f64, lhs.y) - @as(f64, rhs.y);
+                    return dx * dx + dy * dy;
+                }
+                pub fn lerp(lhs: *Self, rhs: Self, t: f64) Self {
+                    const x = @as(data_type, @intFromFloat(COMMON.lerp(@floatFromInt(lhs.x), @floatFromInt(rhs.x), t)));
+                    const y = @as(data_type, @intFromFloat(COMMON.lerp(@floatFromInt(lhs.y), @floatFromInt(rhs.y), t)));
+                    return .{ .x = x, .y = y };
+                }
             };
         },
         3 => {
@@ -612,6 +622,18 @@ pub fn Point(comptime size: comptime_int, comptime data_type: type) type {
                 const Self = @This();
                 pub fn eql(lhs: Self, rhs: Self) bool {
                     return lhs.x == rhs.x and lhs.y == rhs.y and lhs.z == rhs.z;
+                }
+                pub fn distance_squared(lhs: *Self, rhs: Self) f64 {
+                    const dx = @as(f64, lhs.x) - @as(f64, rhs.x);
+                    const dy = @as(f64, lhs.y) - @as(f64, rhs.y);
+                    const dz = @as(f64, lhs.z) - @as(f64, rhs.z);
+                    return dx * dx + dy * dy + dz * dz;
+                }
+                pub fn lerp(lhs: *Self, rhs: Self, t: f64) Self {
+                    const x = @as(data_type, @intFromFloat(COMMON.lerp(@floatFromInt(lhs.x), @floatFromInt(rhs.x), t)));
+                    const y = @as(data_type, @intFromFloat(COMMON.lerp(@floatFromInt(lhs.y), @floatFromInt(rhs.y), t)));
+                    const z = @as(data_type, @intFromFloat(COMMON.lerp(@floatFromInt(lhs.z), @floatFromInt(rhs.z), t)));
+                    return .{ .x = x, .y = y, .z = z };
                 }
             };
         },
