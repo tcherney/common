@@ -12,10 +12,12 @@ const COMMON = @This();
 const COMMON_LOG = std.log.scoped(.common);
 
 var timer: std.time.Timer = undefined;
+/// Starts a timer and stores it in the `timer` variable. The function returns an error if the timer fails to start, otherwise it returns void. The timer can be used to measure elapsed time by calling the `timer_end` function after some code has executed.
 pub fn timer_start() std.time.Timer.Error!void {
     timer = try std.time.Timer.start();
 }
 
+/// Ends the timer started by `timer_start` and returns the elapsed time in seconds as a floating-point number. The function reads the elapsed time from the timer, converts it to seconds, logs the elapsed time using the `COMMON_LOG` logger, resets the timer for future use, and returns the elapsed time in seconds.
 pub fn timer_end() f64 {
     const ret = @as(f64, @floatFromInt(timer.read())) / 1000000000.0;
     COMMON_LOG.info("{d} s elapsed.\n", .{ret});
@@ -23,10 +25,12 @@ pub fn timer_end() f64 {
     return ret;
 }
 
+/// Starts a timer and returns it. The caller is responsible for ending the timer and calculating the elapsed time using the `timer_end_param` function.
 pub fn timer_start_param() std.time.Timer.Error!std.time.Timer {
     return try std.time.Timer.start();
 }
 
+/// Ends the timer passed as a parameter and returns the elapsed time in seconds as a floating-point number. The function reads the elapsed time from the timer, converts it to seconds, logs the elapsed time using the `COMMON_LOG` logger, resets the timer for future use, and returns the elapsed time in seconds.
 pub fn timer_end_param(t: *std.time.Timer) f64 {
     const ret = @as(f64, @floatFromInt(t.read())) / 1000000000.0;
     COMMON_LOG.info("{d} s elapsed.\n", .{ret});
@@ -34,6 +38,7 @@ pub fn timer_end_param(t: *std.time.Timer) f64 {
     return ret;
 }
 
+/// A struct representing a colored terminal output. It provides a set of color codes for different colors and a method for formatting strings with the specified color.
 pub const ColoredTerminal = struct {
     pub const colors = .{
         .red = "\x1B[91m",
@@ -73,6 +78,7 @@ pub const ColoredTerminal = struct {
     }
 };
 
+/// A struct representing a pixel with RGBA components. The components are stored in a 4-element vector of unsigned 8-bit integers, where the first element represents the red component, the second element represents the green component, the third element represents the blue component, and the fourth element represents the alpha (transparency) component. The struct provides methods for initializing a pixel with specific RGBA values, getting and setting individual color components, checking for equality between two pixels, performing linear interpolation between two pixels, and creating a copy of a pixel.
 pub const Pixel = struct {
     v: vec4 = .{ 0, 0, 0, 255 },
     pub const vec4 = @Vector(4, u8);
@@ -126,10 +132,12 @@ pub const Pixel = struct {
     }
 };
 
+/// Performs linear interpolation between two values `v0` and `v1` based on a parameter `t` that ranges from 0 to 1. The function returns a value that is `t` percent of the way from `v0` to `v1`. For example, if `t` is 0.5, the function will return the midpoint between `v0` and `v1`.
 pub fn lerp(v0: f64, v1: f64, t: f64) f64 {
     return v0 + t * (v1 - v0);
 }
 
+/// Returns the maximum value in an array `arr` of type `T`. The function iterates through the elements of the array and keeps track of the maximum value found so far. If the array has only one element, that element is returned as the maximum. If the array is empty, the function is marked as unreachable, indicating that it should never be called with an empty array. The function assumes that the type `T` supports comparison using the greater-than operator (`>`).
 pub fn max_array(comptime T: type, arr: []T) T {
     if (arr.len == 1) {
         return arr[0];
@@ -145,6 +153,7 @@ pub fn max_array(comptime T: type, arr: []T) T {
     return max_t;
 }
 
+/// Writes an integer to a file in little endian byte order. The number of bytes to write is determined by the `num_bytes` parameter, which must be either 2 or 4. The integer to write is given by the `i` parameter, which must fit within the specified number of bytes.
 pub fn write_little_endian(file: *const std.fs.File, num_bytes: comptime_int, i: u32) std.fs.File.Writer.Error!void {
     switch (num_bytes) {
         2 => {
@@ -157,6 +166,7 @@ pub fn write_little_endian(file: *const std.fs.File, num_bytes: comptime_int, i:
     }
 }
 
+/// A utility struct for representing a Huffman tree. It supports inserting codewords with associated symbols, and deinitializing the tree to free memory.
 pub fn HuffmanTree(comptime T: type) type {
     return struct {
         root: Node,
@@ -225,7 +235,7 @@ pub fn HuffmanTree(comptime T: type) type {
     };
 }
 
-// Small utility struct that gives basic byte by byte reading of a file after its been loaded into memory
+/// A utility struct for reading bytes from a byte buffer. It supports options for reading from a file or from an existing buffer, and for taking ownership of the buffer data when reading from a file.
 pub const ByteStream = struct {
     index: usize = 0,
     buffer: []u8 = undefined,
@@ -288,6 +298,7 @@ pub const ByteStream = struct {
     }
 };
 
+/// A utility struct for reading bits from a byte stream. It supports options for JPEG filtering, little endian byte order, and reverse bit order.
 pub const BitReader = struct {
     next_byte: u32 = 0,
     next_bit: u32 = 0,
