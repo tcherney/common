@@ -560,6 +560,7 @@ pub const BitReader = struct {
     }
 };
 
+/// A utility struct for representing a callback function with an associated context. The struct is parameterized by a data type `DATA_TYPE`, which represents the type of data that will be passed to the callback function when it is called. The struct provides methods for initializing a callback with a specific function and context, and for calling the callback with a given data value.
 pub fn Callback(comptime DATA_TYPE: type) type {
     return struct {
         function: *const fn (context: *anyopaque, DATA_TYPE) void,
@@ -575,6 +576,7 @@ pub fn Callback(comptime DATA_TYPE: type) type {
     };
 }
 
+/// A utility struct for representing a callback function that does not take any data as an argument, but still has an associated context. The struct provides methods for initializing the callback with a specific function and context, and for calling the callback without any data.
 pub fn CallbackNoData() type {
     return struct {
         function: *const fn (context: *anyopaque) void,
@@ -590,6 +592,7 @@ pub fn CallbackNoData() type {
     };
 }
 
+/// A utility struct for representing a callback function that takes a data argument of type `DATA_TYPE` and returns an error of type `Error`. The struct provides methods for initializing the callback with a specific function and context, and for calling the callback with a given data value while handling any errors that may occur.
 pub fn CallbackError(comptime DATA_TYPE: type, comptime Error: type) type {
     return struct {
         function: *const fn (context: *anyopaque, DATA_TYPE) Error!void,
