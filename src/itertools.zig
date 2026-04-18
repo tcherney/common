@@ -1,5 +1,6 @@
 const std = @import("std");
 
+/// Returns the sum of all items in the sequence.
 pub fn sum(T: type, sequence: []T) T {
     var ret: T = 0;
     for (sequence) |i| {
@@ -8,6 +9,7 @@ pub fn sum(T: type, sequence: []T) T {
     return ret;
 }
 
+/// Returns the product of all items in the sequence.
 pub fn combinations(T: type, allocator: std.mem.Allocator, sequence: []T, length: usize) !std.ArrayList(std.ArrayList(T)) {
     var combos = std.ArrayList(std.ArrayList(T)).init(allocator);
     for (0..sequence.len) |i| {
@@ -29,6 +31,7 @@ pub fn combinations(T: type, allocator: std.mem.Allocator, sequence: []T, length
     return combos;
 }
 
+/// Returns the cartesian product of the input lists.
 pub fn product(T: type, allocator: std.mem.Allocator, lists: *std.ArrayList(std.ArrayList(T))) !std.ArrayList(std.ArrayList(T)) {
     var combos = std.ArrayList(std.ArrayList(T)).init(allocator);
     if (lists.items.len == 0) {
