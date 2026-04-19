@@ -1,6 +1,8 @@
 // Hashmap wrapper that allocates keys
 const std = @import("std");
 
+/// A wrapper around `std.StringHashMap` that allocates keys on the heap, so that the keys remain valid even if the caller does not keep the original key alive.
+/// This is useful in cases where the keys are not already heap-allocated, and the caller does not want to worry about the lifetime of the keys.
 pub fn StringKeyMap(comptime V: type) type {
     const K = []const u8;
     const KV = std.StringHashMap(V).KV;
