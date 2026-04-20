@@ -1,5 +1,6 @@
 const std = @import("std");
 //TODO add inverse calculation to support solving systems of linear equations
+/// A simple matrix library for 2D and 3D transformations, as well as some image processing kernels. The main purpose of this library is to demonstrate the use of compile-time features in Zig, such as generics and error handling, to create a flexible and efficient matrix implementation. The library supports basic operations like scaling, rotation, shearing, translation, and convolution with predefined kernels for edge detection and blurring. It also includes a method for vectorizing tuples or structs into homogeneous coordinates for transformation applications.
 pub fn Mat(comptime S: comptime_int, comptime T: type) type {
     return struct {
         data: [S * S]T = undefined,
@@ -15,6 +16,7 @@ pub fn Mat(comptime S: comptime_int, comptime T: type) type {
                 .data = data,
             };
         }
+        /// Debug method to print the matrix in a readable format. This is not optimized for performance and is intended for development and debugging purposes.
         pub fn print(self: *const Self) void {
             std.log.debug("{any}\n", .{self.data});
             for (0..S) |i| {
@@ -22,6 +24,7 @@ pub fn Mat(comptime S: comptime_int, comptime T: type) type {
                 std.log.debug("{any}\n", .{v});
             }
         }
+        /// Creates a scaling transformation matrix. This method assumes that the scaling is uniform across all dimensions and that the last row and column are reserved for homogeneous coordinates. If the matrix size is less than 2, it returns an error since scaling is not defined for 1x1 matrices.
         pub fn scale(s: T) Error!Self {
             if (S < 2) return Error.TransformationUndefined;
             var ret = Self{};
@@ -35,6 +38,7 @@ pub fn Mat(comptime S: comptime_int, comptime T: type) type {
             ret.fill_identity(2);
             return ret;
         }
+        /// Fills the matrix with the identity transformation starting from a specified row and column index. This is useful for creating transformation matrices where only a subset of the matrix is modified, and the rest should remain as the identity. The method iterates through the specified range and sets the appropriate elements to 1 for the diagonal and 0 for the off-diagonal elements.
         pub fn fill_identity(self: *Self, rc_start: usize) void {
             for (rc_start..S) |i| {
                 for (0..S - 1) |j| {
