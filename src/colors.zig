@@ -1,5 +1,6 @@
 const Pixel = @import("common.zig").Pixel;
 
+/// Color constants made up of Pixel objects
 pub const Colors = struct {
     pub const WHITE = Pixel.init(255, 255, 255, null);
     pub const BLACK = Pixel.init(0, 0, 0, null);

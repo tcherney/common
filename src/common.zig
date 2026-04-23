@@ -1,7 +1,5 @@
 const std = @import("std");
 
-//TODO port over util functions here, more complex structs in seperate files that then get exposed here
-//TODO add docs for all of this
 pub const StringKeyMap = @import("string_key_map.zig").StringKeyMap;
 pub const Graph = @import("graph.zig");
 pub const Mat = @import("matrix.zig").Mat;
@@ -57,6 +55,8 @@ pub const ColoredTerminal = struct {
         .end = "\x1B[0m",
     };
 
+    /// Takes in a format string and a color and generates a new format string with that color added
+    /// for terminal output
     pub fn colored_format(comptime fmt: []const u8, color: @Type(.enum_literal)) []const u8 {
         const color_str = switch (color) {
             .red => colors.red,
@@ -116,6 +116,9 @@ pub const Pixel = struct {
     pub fn eql(self: *Pixel, other: Pixel) bool {
         return @reduce(.And, self.v == other.v);
     }
+
+    /// Linear interpolation between one Pixel and another
+    /// that generates a new Pixel using a value t from 0 to 1
     pub fn lerp(self: *Pixel, other: Pixel, t: f64) Pixel {
         const r: u8 = @as(u8, @intFromFloat(COMMON.lerp(@floatFromInt(self.get_r()), @floatFromInt(other.get_r()), t)));
         const g: u8 = @as(u8, @intFromFloat(COMMON.lerp(@floatFromInt(self.get_g()), @floatFromInt(other.get_g()), t)));
