@@ -34,6 +34,7 @@ pub fn StringKeyMap(comptime V: type) type {
         }
 
         //TODO could support more features
+        /// Add a key to the map, returning a pointer to the stored key. If the key already exists, returns a pointer to the existing key.
         fn add_key(self: *Self, key: []const u8) ![]u8 {
             for (0..self.keys.items.len) |i| {
                 if (std.mem.eql(u8, self.keys.items[i].items, key)) {
