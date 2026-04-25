@@ -2,6 +2,9 @@ const std = @import("std");
 
 /// A simple graph implementation with Dijkstra's and A* algorithms. The graph is represented as an adjacency list, where each node maintains a list of its edges. Each edge contains a reference to the neighboring node and the cost of traversing that edge. The graph also includes methods for adding nodes and edges, as well as for performing Dijkstra's and A* pathfinding algorithms. The implementation allows for both finding any shortest path and finding all shortest paths between two nodes, depending on the options provided to the algorithms.
 pub const Graph = struct {
+    /// Represents a node in the graph, containing a list of edges, the cost to reach this node from the source, and an index for identification.
+    /// The Node struct includes methods for initializing the node, adding edges to neighboring nodes, printing the node's information, deinitializing resources,
+    /// and comparing nodes based on their cost for use in priority queues.
     pub const Node = struct {
         edges: *std.ArrayList(Edge),
         cost: u64 = undefined,
@@ -39,6 +42,10 @@ pub const Graph = struct {
             return std.math.order(self.cost, other.cost);
         }
     };
+    /// Represents an edge in the graph, containing pointers to the source and destination nodes (u and v) and the cost of traversing that edge.
+    /// The Edge struct is used to define the connections between nodes in the graph, allowing for weighted edges where the cost can represent distance,
+    /// time, or any other metric relevant to the problem being solved. Each edge is stored in the list of edges for the source node,
+    /// enabling efficient traversal and pathfinding operations.
     pub const Edge = struct {
         u: *Node,
         v: *Node,
