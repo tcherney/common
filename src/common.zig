@@ -286,12 +286,15 @@ pub const ByteStream = struct {
     pub fn getEndPos(self: *ByteStream) usize {
         return self.buffer.len - 1;
     }
+    /// Returns the next byte in the stream without advancing the index.
+    /// If the index is out of bounds, an `OutOfBounds` error is returned. Otherwise, the byte at the current index is returned.
     pub fn peek(self: *ByteStream) Error!u8 {
         if (self.index > self.buffer.len - 1) {
             return Error.OutOfBounds;
         }
         return self.buffer[self.index];
     }
+    /// Returns the next byte in the stream and advances the index by one.
     pub fn readByte(self: *ByteStream) Error!u8 {
         if (self.index > self.buffer.len - 1) {
             return Error.OutOfBounds;
@@ -316,6 +319,11 @@ pub const BitReader = struct {
         InvalidEOI,
     } || ByteStream.Error;
 
+    /// Initializes a `BitReader` instance based on the provided options.
+    /// The function takes an `options` parameter of any type, which is expected to be a struct containing the necessary fields for initializing the `BitReader`.
+    /// The function first checks if the type of `options` is a struct, and if not, it returns an `InvalidArgs` error.
+    /// If the type is valid, it initializes a `ByteStream` using the provided options and sets the `BitReader` options based on the fields in the `options` struct.
+    /// Finally, it returns the initialized `BitReader` instance.
     pub fn init(options: anytype) Error!BitReader {
         var bit_reader: BitReader = BitReader{};
         bit_reader.byte_stream = try ByteStream.init(options);
@@ -323,6 +331,7 @@ pub const BitReader = struct {
         return bit_reader;
     }
 
+    /// Sets the options for the `BitReader` instance based on the provided `options` parameter.
     pub fn set_options(self: *Self, options: anytype) Error!void {
         const ArgsType = @TypeOf(options);
         const args_type_info = @typeInfo(ArgsType);
@@ -343,10 +352,15 @@ pub const BitReader = struct {
     pub fn getPos(self: *Self) usize {
         return self.byte_stream.getPos();
     }
+    /// Checks if there are more bits to read from the byte stream.
+    /// It compares the current position of the byte stream with the end position, and returns `true` if there are more bits to read, or `false`
+    /// if the end of the stream has been reached.
     pub fn has_bits(self: *Self) bool {
         return if (self.byte_stream.getPos() != self.byte_stream.getEndPos()) true else false;
     }
 
+    /// Reads a value of type `T` from the byte stream.
+    /// The function first resets the `next_bit` field to 0, and then reads bytes from the stream based on the type `T`.
     pub fn read(self: *Self, comptime T: type) Error!T {
         self.next_bit = 0;
         var ret: T = undefined;
@@ -504,6 +518,9 @@ pub const BitReader = struct {
         }
         return ret;
     }
+    /// Reads a single bit from the byte stream. If the current byte has no more bits to read, it reads the next byte from the stream.
+    /// If the `jpeg_filter` option is enabled, it also handles JPEG-specific byte stuffing and marker detection.
+    /// The function returns the value of the bit read (0 or 1) or an error if there are no more bits to read or if an unexpected marker is encountered.
     pub fn read_bit(self: *Self) Error!u32 {
         var bit: u32 = undefined;
         if (self.next_bit == 0) {
@@ -546,6 +563,10 @@ pub const BitReader = struct {
         self.next_bit = (self.next_bit + 1) % 8;
         return bit;
     }
+    /// Reads a specified number of bits from the byte stream and returns them as a single value.
+    /// The function calls `read_bit` in a loop to read the desired number of bits, and combines them into a single value based on the `reverse_bit_order` option.
+    /// If `reverse_bit_order` is enabled, the bits are combined in reverse order; otherwise, they are combined in the order they were read.
+    /// The function returns the combined value or an error if there are not enough bits to read.
     pub fn read_bits(self: *Self, length: u32) Error!u32 {
         var bits: u32 = 0;
         for (0..length) |i| {
@@ -558,6 +579,8 @@ pub const BitReader = struct {
         }
         return bits;
     }
+    /// Aligns the bit reader to the next byte boundary by resetting the `next_bit` field to 0.
+    /// This means that the next call to `read_bit` or `read_bits` will start reading from the next byte in the stream, rather than continuing to read from the current byte.
     pub fn align_reader(self: *Self) void {
         self.next_bit = 0;
     }
